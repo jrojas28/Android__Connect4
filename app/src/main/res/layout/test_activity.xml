@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="horizontal"
+    android:columnCount="7"
+    android:rowCount="7"
+    android:padding="15dp"
+    android:id="@+id/board">
+    <TextView
+        android:text="Random Comment"/>
+</GridLayout>
