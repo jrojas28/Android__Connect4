@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageView;
 
 import com.altice_crt_b.connect4.R;
 import com.altice_crt_b.connect4.adapters.BoardGridAdapter;
@@ -49,16 +50,39 @@ public class GameActivity extends AppCompatActivity {
         tilesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                View v = ( View )chipsView.getItemAtPosition(i);
-                v.findViewById(R.id.chip).setVisibility(View.VISIBLE);
-                int column = (int) l % 7;
+                Log.d(TAG, "item clicked: " + i);
 
-                if( !instance.getGameStatus() ){
-                    gameEndDialog.setMessage("The Game has been won by " + instance.getWinner().getUsername() + ". Do you want a Rematch?");
+                int column = (int) i % 7;
+                Log.d(TAG, "column: " + column);
+
+                int row = instance.placeChip(column);
+
+                Log.d(TAG, "row: " + row);
+
+                if(row != -1){
+                    int position = row * 7  + column ;
+                    Log.d(TAG, "position: " + position);
+                    View chipLayout = ( View )chipsView.getItemAtPosition(position);
+                    ImageView chipView = chipLayout.findViewById(R.id.chip);
+                    if(instance.getTurn() == 1){
+                        chipView.setImageResource(R.drawable.chip_vector_p1);
+                    }else{
+                        chipView.setImageResource(R.drawable.chip_vector_p2);
+                    }
+
+                    chipView.setVisibility(View.VISIBLE);
+//
+                    if( instance.getGameStatus() ){
+                        gameEndDialog.setMessage("The Game has been won by " + instance.getWinner().getUsername() + ". Do you want a Rematch?");
+                        gameEndDialog.show();
+                    }
+
+                    instance.toggleTurn();
+
+//                    Log.d(TAG, "position: " + i + " column: " +  column);
                 }
 
 
-                Log.d(TAG, "position: " + i + " column: " +  column);
 
             }
         });

@@ -6,7 +6,7 @@
     <ImageView
         android:id="@+id/chip"
         android:visibility="invisible"
-        android:background="@drawable/chip_vector"
+        android:background="@drawable/chip_vector_p1"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
