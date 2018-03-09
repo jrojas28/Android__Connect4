@@ -44,10 +44,8 @@ public class TestActivity extends AppCompatActivity {
                 tv.setGravity(Gravity.CENTER);
                 tv.setLayoutParams(tvParams);
                 view.addView(tv);
-                Log.wtf("Board Log", tv.toString());
             }
         }
-        Log.wtf("Board Log", "Initializing Buttons...");
         for(int i = 0; i < 7; i++) {
             final int buttonValue = i;
             Button btn = new Button(this);
@@ -75,15 +73,21 @@ public class TestActivity extends AppCompatActivity {
                         }
                     });
                     if(!instance.getGameStatus()) {
-                        boolean gameWon = instance.placeChip(buttonValue);
-                        if(gameWon) {
-                            renderBoard(instance);
-                            builder.show();
+                        int row = instance.placeChip(buttonValue);
+                        if(row == -1) {
+                            Toast.makeText(TestActivity.this, "This Row is full. Try another row.", Toast.LENGTH_SHORT).show();
                         }
                         else {
-                            renderBoard(instance);
-                            Toast.makeText(TestActivity.this, "It's " + instance.toggleTurn().getUsername() + " Turn.", Toast.LENGTH_SHORT).show();
+                            if(instance.getGameStatus()) {
+                                renderBoard(instance);
+                                builder.show();
+                            }
+                            else {
+                                renderBoard(instance);
+                                Toast.makeText(TestActivity.this, "It's " + instance.toggleTurn().getUsername() + " Turn.", Toast.LENGTH_SHORT).show();
+                            }
                         }
+
                     }
                     else {
                         builder.show();

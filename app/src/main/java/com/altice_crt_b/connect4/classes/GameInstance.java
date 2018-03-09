@@ -1,5 +1,7 @@
 package com.altice_crt_b.connect4.classes;
 
+import android.util.Log;
+
 /**
  * Created by jaime on 3/7/2018.
  */
@@ -20,34 +22,62 @@ public class GameInstance {
         this.turn = 1;
     }
 
+    /**
+     * Function intended to obtain the board.
+     * @return int[][] board -- The board array
+     */
     public int[][] getBoard() {
         return this.board;
     }
 
+    /**
+     * Function intended to obtain the game's status.
+     * @return boolean finished -- Wether the game is finished or not.
+     */
     public boolean getGameStatus() {
         return this.finished;
     }
 
+    /**
+     * Function intended to reset
+     * @return Player winner -- The winner of the game based on whose turn it was.
+     */
     public Player getWinner() {
         return this.turn == 1 ? p1 : p2;
     }
 
+    /**
+     * Function intended to obtain the turn of the next player
+     * @return int turn -- 1 for player 1, 2 for player 2.
+     */
     public int getTurn() {
         return this.turn;
     }
 
+    /**
+     * Function intended to toggle the actual turn and return the player whose turn it is.
+     * @return Player player -- the player whose turn it is next.
+     */
     public Player toggleTurn() {
         this.turn = this.turn == 1? 2 : 1;
         return this.turn == 1? p1 : p2;
     }
 
+    /**
+     * Function intended to reset the game and start a new one.
+     */
     public void reset() {
         this.board = new int[6][7];
         this.finished = false;
         this.turn = 1;
     }
 
-    public boolean placeChip(int column) {
+    /**
+     * Function intended to help determine chip placement on the board.
+     * @param column -- the column on which the player decided to place his chip.
+     * @return int row -- the row on which the player's chip was placed.
+     */
+    public int placeChip(int column) {
         int row = -1;
         for(int i = 5; i >= 0; i--) {
             //Determine if the column is empty.
@@ -58,26 +88,74 @@ public class GameInstance {
                 break;
             }
         }
+        //If no empty row was found, return -1.
+        if(row == -1) {
+            return -1;
+        }
         this.finished = this.determineWinner(row, column);
-        return this.finished;
+        return row;
     }
 
+    /**
+     * Function intended to help determine if the game was won by the last chip.
+     * @param row -- the row on which the player's chip has been placed.
+     * @param column -- the column on which the player's chip has been placed.
+     * @return boolean gameWon -- wether the game has been won or not.
+     */
     private boolean determineWinner(int row, int column) {
-        return (
-                //Check Left
-                ((column > 2) && (board[row][column-3] == board[row][column-2] && board[row][column-2] == board[row][column-1] && board[row][column-1] == board[row][column])) ||
-                //Check Right
-                ((column < 4) && (board[row][column+3] == board[row][column+2] && board[row][column+2] == board[row][column+1] && board[row][column+1] == board[row][column])) ||
-                //Check Down
-                ((row < 3) && (board[row+3][column] == board[row+2][column] && board[row+2][column] == board[row+1][column] && board[row+1][column] == board[row][column])) ||
-                //Check Up & Left
-                ((row > 2 && column > 2) && (board[row-3][column-3] == board[row-2][column-2] && board[row-2][column-2] == board[row-1][column-1] && board[row-1][column-1] == board[row][column])) ||
-                //Check Up & Right
-                ((row > 2 && column < 4) && (board[row-3][column+3] == board[row-2][column+2] && board[row-2][column+2] == board[row-1][column+1] && board[row-1][column+1] == board[row][column])) ||
-                //Check Down & Left
-                ((row < 3 && column > 2) && (board[row+3][column-3] == board[row+2][column-2] && board[row+2][column-2] == board[row+1][column-1] && board[row+1][column-1] == board[row][column])) ||
-                //Check Down & Right
-                ((row < 3 && column < 4) && (board[row+3][column+3] == board[row+2][column+2] && board[row+2][column+2] == board[row+1][column+1] && board[row+1][column+1] == board[row][column]))
-                );
+        Log.wtf("Match Log", "Row is " + Integer.toString(row) + " Column is " + Integer.toString(column));
+        //Check Horizontally
+        for(int i = column - 3; i <= column; i++) {
+            if(i < 0 || i + 3 > 6) {
+                continue;
+            }
+            if(board[row][i] == board[row][i+1] && board[row][i+1] == board[row][i+2] && board[row][i+2] == board[row][i+3]) {
+                Log.wtf("Match Log", "Horizontal Match - " + Integer.toString(row) + "," + Integer.toString(i));
+                return true;
+            }
+        }
+        //Check Vertically
+        for(int i = row + 3; i >= row; i--) {
+            if(i - 3 < 0 || i > 5) {
+                continue;
+            }
+            if(board[i][column] == board[i-1][column] && board[i-1][column] == board[i-2][column] && board[i-2][column] == board[i-3][column]) {
+                Log.wtf("Match Log", "Vertical Match - " + Integer.toString(i) + "," + Integer.toString(column));
+                return true;
+            }
+        }
+        //Check from Bottom Left to Top Right
+        for(int i = row + 3; i >= row; i--) {
+            if(i - 3 < 0 || i > 5) {
+                continue;
+            }
+            //J must be determined based on I, so it will only check the diagonal that represents the actual chip.
+            int j = column - (i - row);
+
+            if(j < 0 || j + 3 > 6) {
+                continue;
+            }
+            if(board[i][j] == board[i-1][j+1] && board[i-1][j+1] == board[i-2][j+2] && board[i-2][j+2] == board[i-3][j+3]) {
+                Log.wtf("Match Log", "Bottom Left - Top Right Match - " + Integer.toString(i) + "," + Integer.toString(j));
+                return true;
+            }
+        }
+        //Check from Top Left to Bottom Right
+        for(int i = row + 3; i >= row; i--) {
+            if(i - 3 < 0 || i > 5) {
+                continue;
+            }
+            //J must be determined based on I, so it will only check the diagonal that represents the actual chip.
+            int j = column + (i - row);
+
+            if(j - 3 < 0 || j > 6) {
+                continue;
+            }
+            if(board[i][j] == board[i-1][j-1] && board[i-1][j-1] == board[i-2][j-2] && board[i-2][j-2] == board[i-3][j-3]) {
+                Log.wtf("Match Log", "Top Left - Bottom Right Match - " + Integer.toString(i) + "," + Integer.toString(j));
+                return true;
+            }
+        }
+        return false;
     }
 }
