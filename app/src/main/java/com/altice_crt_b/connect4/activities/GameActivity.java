@@ -32,7 +32,9 @@ public class GameActivity extends AppCompatActivity {
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                    instance.reset(); }
+                    instance.reset();
+                    chipsView.setAdapter(new BoardGridAdapter(GameActivity.this, R.layout.chip_layout));
+            }
         })
                 .create();
 
