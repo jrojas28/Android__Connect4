@@ -6,6 +6,10 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.GridLayoutAnimationController;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -20,6 +24,7 @@ public class GameActivity extends AppCompatActivity {
     private GridView tilesView;
     private GridView chipsView;
     private AlertDialog gameEndDialog;
+    Animation bounceOnEnter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,13 +35,14 @@ public class GameActivity extends AppCompatActivity {
                 .setTitle("Game Finished!")
                 .setMessage("The Game has been won by " + instance.getWinner().getUsername() + ". Do you want a Rematch?")
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                    instance.reset();
-                    chipsView.setAdapter(new BoardGridAdapter(GameActivity.this, R.layout.chip_layout));
-            }
-        })
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                            instance.reset();
+                            chipsView.setAdapter(new BoardGridAdapter(GameActivity.this, R.layout.chip_layout));
+                }
+                })
                 .create();
+        bounceOnEnter = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_on_enter);
 
 
 
@@ -47,7 +53,6 @@ public class GameActivity extends AppCompatActivity {
         chipsView = findViewById(R.id.board_fill);
 
         chipsView.setAdapter(new BoardGridAdapter(this, R.layout.chip_layout));
-
 
         tilesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -66,14 +71,13 @@ public class GameActivity extends AppCompatActivity {
                     Log.d(TAG, "position: " + position);
                     View chipLayout = ( View )chipsView.getItemAtPosition(position);
                     ImageView chipView = chipLayout.findViewById(R.id.chip);
-                    if(instance.getTurn() == 1){
-                        chipView.setImageResource(R.drawable.chip_vector_p1);
-                    }else{
-                        chipView.setImageResource(R.drawable.chip_vector_p2);
-                    }
+
+                    chipView.setImageResource( instance.getTurn() == 1 ? R.drawable.chip_vector_p1 :
+                            R.drawable.chip_vector_p2 );
 
                     chipView.setVisibility(View.VISIBLE);
-//
+                    chipLayout.startAnimation(bounceOnEnter);
+
                     if( instance.getGameStatus() ){
                         gameEndDialog.setMessage("The Game has been won by " + instance.getWinner().getUsername() + ". Do you want a Rematch?");
                         gameEndDialog.show();
@@ -81,7 +85,6 @@ public class GameActivity extends AppCompatActivity {
 
                     instance.toggleTurn();
 
-//                    Log.d(TAG, "position: " + i + " column: " +  column);
                 }
 
 

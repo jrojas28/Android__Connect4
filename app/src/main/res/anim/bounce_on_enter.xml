@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The interpolator is in charge of generating the bounce effect on the item. -->
+<!-- A great guide on interpolators: https://medium.com/mindorks/understanding-interpolators-in-android-ce4e8d1d71cd -->
+<!-- The translate tag is used to make the object move from one position to another -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/bounce_interpolator"
+    >
+    <translate
+        android:fromYDelta="-100%p"
+        android:toYDelta="0"
+        android:duration="850"/>
+</set>
