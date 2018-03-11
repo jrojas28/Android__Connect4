@@ -6,11 +6,22 @@ package com.altice_crt_b.connect4.classes;
 
 public class Player {
     String username;
+    int gamesWon;
+
     public Player(String username) {
         this.username = username;
+        this.gamesWon = 0;
     }
 
     public String getUsername() {
         return this.username;
+    }
+
+    public int getGamesWon() {
+        return this.gamesWon;
+    }
+
+    public void incrementGamesWon(int increment) {
+        this.gamesWon += increment;
     }
 }

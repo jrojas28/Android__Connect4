@@ -1,5 +1,6 @@
 package com.altice_crt_b.connect4.classes;
 
+import android.graphics.Point;
 import android.util.Log;
 
 /**
@@ -8,6 +9,7 @@ import android.util.Log;
 
 public class GameInstance {
     private int[][] board;
+    private Point[] lastWinningPattern;
     private Player p1;
     private Player p2;
     private int turn;
@@ -15,6 +17,7 @@ public class GameInstance {
 
     public GameInstance(Player p1, Player p2) {
         this.board = new int[6][7];
+        this.lastWinningPattern = new Point[4];
         this.p1 = p1;
         this.p2 = p2;
         this.finished = false;
@@ -24,6 +27,7 @@ public class GameInstance {
 
     public GameInstance(Player p1, Player p2, int turn) {
         this.board = new int[6][7];
+        this.lastWinningPattern = new Point[4];
         this.p1 = p1;
         this.p2 = p2;
         this.finished = false;
@@ -47,11 +51,35 @@ public class GameInstance {
     }
 
     /**
-     * Function intended to reset
+     * Function intended to return the winner of the game.
      * @return Player winner -- The winner of the game based on whose turn it was.
      */
     public Player getWinner() {
         return this.turn == 1 ? p1 : p2;
+    }
+
+    /**
+     * Function intended to return the last winning pattern.
+     * @return Point[] lastWinningPattern -- The last winning pattern made by the players.
+     */
+    public Point[] getLastWinningPattern() {
+        return this.lastWinningPattern;
+    }
+
+    /**
+     * Function intended to determine wether or not a certain row / column combination is part of the winning pattern.
+     * @param row -- the row that is to be checked.
+     * @param column -- the column that is to be checked.
+     * @return result -- Wether this row / column combination is part of the winning pattern.
+     */
+    public boolean isInLastWinningPattern(int row, int column) {
+        Point p = new Point(row, column);
+        for(int i = 0; i < lastWinningPattern.length; i++) {
+            if(p.x == lastWinningPattern[i].x && p.y == lastWinningPattern[i].y) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -119,6 +147,10 @@ public class GameInstance {
             }
             if(board[row][i] == board[row][i+1] && board[row][i+1] == board[row][i+2] && board[row][i+2] == board[row][i+3]) {
                 Log.wtf("Match Log", "Horizontal Match - " + Integer.toString(row) + "," + Integer.toString(i));
+                lastWinningPattern[0] = new Point(row, i);
+                lastWinningPattern[1] = new Point(row, i + 1);
+                lastWinningPattern[2] = new Point(row, i + 2);
+                lastWinningPattern[3] = new Point(row, i + 3);
                 return true;
             }
         }
@@ -129,6 +161,10 @@ public class GameInstance {
             }
             if(board[i][column] == board[i-1][column] && board[i-1][column] == board[i-2][column] && board[i-2][column] == board[i-3][column]) {
                 Log.wtf("Match Log", "Vertical Match - " + Integer.toString(i) + "," + Integer.toString(column));
+                lastWinningPattern[0] = new Point(i, column);
+                lastWinningPattern[1] = new Point(i - 1, column);
+                lastWinningPattern[2] = new Point(i - 2, column);
+                lastWinningPattern[3] = new Point(i - 3, column);
                 return true;
             }
         }
@@ -145,6 +181,10 @@ public class GameInstance {
             }
             if(board[i][j] == board[i-1][j+1] && board[i-1][j+1] == board[i-2][j+2] && board[i-2][j+2] == board[i-3][j+3]) {
                 Log.wtf("Match Log", "Bottom Left - Top Right Match - " + Integer.toString(i) + "," + Integer.toString(j));
+                lastWinningPattern[0] = new Point(i, j);
+                lastWinningPattern[1] = new Point(i - 1, j + 1);
+                lastWinningPattern[2] = new Point(i - 2, j + 2);
+                lastWinningPattern[3] = new Point(i - 3, j + 3);
                 return true;
             }
         }
@@ -161,6 +201,10 @@ public class GameInstance {
             }
             if(board[i][j] == board[i-1][j-1] && board[i-1][j-1] == board[i-2][j-2] && board[i-2][j-2] == board[i-3][j-3]) {
                 Log.wtf("Match Log", "Top Left - Bottom Right Match - " + Integer.toString(i) + "," + Integer.toString(j));
+                lastWinningPattern[0] = new Point(i, j);
+                lastWinningPattern[1] = new Point(i - 1, j - 1);
+                lastWinningPattern[2] = new Point(i - 2, j - 2);
+                lastWinningPattern[3] = new Point(i - 3, j - 3);
                 return true;
             }
         }
