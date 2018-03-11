@@ -5,4 +5,8 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_test">TestActivity</string>
     <string name="title_activity_menu">MenuActivity</string>
+    <string name="game_finished_title">Game Finished!</string>
+    <string name="default_p_1_name">Player 1</string>
+    <string name="default_p_2_name">Player 2</string>
+    <string name="game_end_content">The Game has been won by %s. Do you want a Rematch?</string>
 </resources>

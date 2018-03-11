@@ -19,11 +19,15 @@ import com.altice_crt_b.connect4.adapters.BoardGridAdapter;
 import com.altice_crt_b.connect4.classes.GameInstance;
 import com.altice_crt_b.connect4.classes.Player;
 
+import java.util.ArrayList;
+
 public class GameActivity extends AppCompatActivity {
     String TAG = GameActivity.class.getName();
-    private GridView tilesView;
+
     private GridView chipsView;
     private AlertDialog gameEndDialog;
+    private GameInstance gameInstance;
+    private ArrayList<Integer> usedPositions;
 
 
     @Override
@@ -31,24 +35,27 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game_activity);
         Bundle extras = getIntent().getExtras();
-        final GameInstance instance = extras != null ?
+        usedPositions = new ArrayList<>();
+        gameInstance = extras != null ?
                 //If extras isn't null, do this.
                 new GameInstance(new Player(extras.getString("player_1_username")), new Player(extras.getString("player_2_username")), extras.getInt("starting_player")) :
                 //If extras is null, do this.
-                new GameInstance(new Player("Player 1"), new Player("Player 2"));
+                new GameInstance(new Player(getString(R.string.default_p_1_name)), new Player(getString(R.string.default_p_2_name)));
+
         gameEndDialog = new AlertDialog.Builder(GameActivity.this )
-                .setTitle("Game Finished!")
-                .setMessage("The Game has been won by " + instance.getWinner().getUsername() + ". Do you want a Rematch?")
+                .setTitle(R.string.game_finished_title)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                            instance.reset();
-                            chipsView.setAdapter(new BoardGridAdapter(GameActivity.this, R.layout.chip_layout));
+                    gameInstance.reset();
+                    cleanBoard();
+//                            chipsView.setAdapter(new BoardGridAdapter(GameActivity.this, R.layout.chip_layout));
+
                 }
                 })
                 .create();
 
-        tilesView = findViewById(R.id.board_grid);
+        GridView tilesView = findViewById(R.id.board_grid);
 
         tilesView.setAdapter(new BoardGridAdapter(this, R.layout.tile_layout));
 
@@ -59,42 +66,74 @@ public class GameActivity extends AppCompatActivity {
         tilesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d(TAG, "item clicked: " + i);
+               handlePlay(i);
+            }
+        });
+    }
 
-                int column = (int) i % 7;
-                Log.d(TAG, "column: " + column);
+    public void handlePlay(int clickedItem){
 
-                int row = instance.placeChip(column);
+        int column = clickedItem % 7;
+        int row = gameInstance.placeChip(column);
 
-                Log.d(TAG, "row: " + row);
+        if(row != -1){
+            int position = row * 7  + column ;
+            placeChipAnimated(position);
+            usedPositions.add(position);
 
-                if(row != -1){
-                    int position = row * 7  + column ;
-                    Log.d(TAG, "position: " + position);
-                    View chipLayout = ( View )chipsView.getItemAtPosition(position);
-                    ImageView chipView = chipLayout.findViewById(R.id.chip);
+            if( gameInstance.getGameStatus() ){
+                gameEndDialog.setMessage( String.format( getString(R.string.game_end_content), gameInstance.getWinner().getUsername() ));
+                gameEndDialog.show();
+            }
 
-                    chipView.setImageResource( instance.getTurn() == 1 ? R.drawable.chip_vector_p1 :
-                            R.drawable.chip_vector_p2 );
+            gameInstance.toggleTurn();
 
-                    chipView.setVisibility(View.VISIBLE);
-                    Animation bounceOnEnter = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_on_enter);
-                    chipLayout.startAnimation(bounceOnEnter);
+        }
+    }
 
-                    if( instance.getGameStatus() ){
-                        gameEndDialog.setMessage("The Game has been won by " + instance.getWinner().getUsername() + ". Do you want a Rematch?");
-                        gameEndDialog.show();
-                    }
+    public void placeChipAnimated(int position){
 
-                    instance.toggleTurn();
+        View chipLayout = ( View )chipsView.getItemAtPosition(position);
+        ImageView chipView = chipLayout.findViewById(R.id.chip);
 
-                }
+        chipView.setImageResource( gameInstance.getTurn() == 1 ? R.drawable.chip_vector_p1 :
+                R.drawable.chip_vector_p2 );
 
+        chipView.setVisibility(View.VISIBLE);
 
+        Animation bounceOnEnter = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_on_enter);
+        chipLayout.startAnimation(bounceOnEnter);
+    }
+
+    public void cleanBoard(){
+        for ( int position:
+              usedPositions) {
+            removeChipAnimated(position);
+
+        }
+        usedPositions.clear();
+    }
+
+    public void removeChipAnimated(int position){
+        View chipLayout = ( View )chipsView.getItemAtPosition(position);
+        final ImageView chipView = chipLayout.findViewById(R.id.chip);
+        Animation bounceOnExit = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_on_exit);
+        bounceOnExit.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                chipView.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
 
             }
         });
-
-
+        chipLayout.startAnimation(bounceOnExit);
     }
 }

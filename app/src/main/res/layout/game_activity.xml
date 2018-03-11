@@ -21,20 +21,33 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content">
 
+
             <ImageView
                 android:id="@+id/p1_icon"
                 android:layout_width="50dp"
+                
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:adjustViewBounds="true"
                 android:src="@drawable/chip_vector_p1" />
+            <ProgressBar
+                android:id="@+id/p1_progress"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:adjustViewBounds="true"
+
+              />
             <TextView
 
                 android:layout_below="@id/p1_icon"
                 android:id="@+id/p1_name"
-                android:text="Player 1"
+                android:text="@string/default_p_1_name"
+                android:textColor="@android:color/white"
 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
@@ -81,6 +94,7 @@
 
 
     <GridView
+        android:visibility="visible"
         android:background="@drawable/chips_grid_background"
         android:layout_alignParentBottom="true"
         android:id="@+id/board_fill"
@@ -90,7 +104,7 @@
         android:layout_height="wrap_content"/>
 
     <GridView
-
+        android:visibility="visible"
         android:layout_alignParentBottom="true"
         android:id="@+id/board_grid"
         android:numColumns="7"
