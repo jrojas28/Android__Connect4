@@ -30,7 +30,12 @@ public class GameActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game_activity);
-        final GameInstance instance = new GameInstance(new Player("jrojas"), new Player("lrojas"));
+        Bundle extras = getIntent().getExtras();
+        final GameInstance instance = extras != null ?
+                //If extras isn't null, do this.
+                new GameInstance(new Player(extras.getString("player_1_username")), new Player(extras.getString("player_2_username")), extras.getInt("starting_player")) :
+                //If extras is null, do this.
+                new GameInstance(new Player("Player 1"), new Player("Player 2"));
         gameEndDialog = new AlertDialog.Builder(GameActivity.this )
                 .setTitle("Game Finished!")
                 .setMessage("The Game has been won by " + instance.getWinner().getUsername() + ". Do you want a Rematch?")
