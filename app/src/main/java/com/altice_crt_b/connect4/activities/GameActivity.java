@@ -24,7 +24,7 @@ public class GameActivity extends AppCompatActivity {
     private GridView tilesView;
     private GridView chipsView;
     private AlertDialog gameEndDialog;
-    Animation bounceOnEnter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +47,6 @@ public class GameActivity extends AppCompatActivity {
                 }
                 })
                 .create();
-        bounceOnEnter = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_on_enter);
-
-
 
         tilesView = findViewById(R.id.board_grid);
 
@@ -81,6 +78,7 @@ public class GameActivity extends AppCompatActivity {
                             R.drawable.chip_vector_p2 );
 
                     chipView.setVisibility(View.VISIBLE);
+                    Animation bounceOnEnter = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_on_enter);
                     chipLayout.startAnimation(bounceOnEnter);
 
                     if( instance.getGameStatus() ){
