@@ -18,8 +18,16 @@ public class GameInstance {
         this.p1 = p1;
         this.p2 = p2;
         this.finished = false;
-        //The 1st Player should always start the game.
+        //The 1st Player should always start the game unless stated otherwise..
         this.turn = 1;
+    }
+
+    public GameInstance(Player p1, Player p2, int turn) {
+        this.board = new int[6][7];
+        this.p1 = p1;
+        this.p2 = p2;
+        this.finished = false;
+        this.turn = turn;
     }
 
     /**
