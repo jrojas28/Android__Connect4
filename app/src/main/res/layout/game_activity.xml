@@ -25,32 +25,22 @@
             <ImageView
                 android:id="@+id/p1_icon"
                 android:layout_width="50dp"
-                
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
                 android:adjustViewBounds="true"
+                android:paddingTop="10dp"
                 android:src="@drawable/chip_vector_p1" />
-            <ProgressBar
-                android:id="@+id/p1_progress"
-                android:layout_width="50dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:adjustViewBounds="true"
-
-              />
             <TextView
 
                 android:layout_below="@id/p1_icon"
                 android:id="@+id/p1_name"
                 android:text="@string/default_p_1_name"
                 android:textColor="@android:color/white"
-
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:gravity="center"/>
 
         </RelativeLayout>
 
@@ -70,25 +60,22 @@
             <ImageView
                 android:id="@+id/p2_icon"
                 android:layout_alignParentTop="true"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
                 android:src="@drawable/chip_vector_p2"
                 android:layout_width="50dp"
                 android:adjustViewBounds="true"
+                android:paddingTop="10dp"
                 android:layout_height="wrap_content" />
             <TextView
-                android:gravity="right"
                 android:layout_below="@id/p2_icon"
                 android:id="@+id/p2_name"
                 android:text="Player 1"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:gravity="center"/>
 
         </RelativeLayout>
-
-
-
-
     </LinearLayout>
 
 
