@@ -21,6 +21,8 @@ import com.altice_crt_b.connect4.adapters.BoardGridAdapter;
 import com.altice_crt_b.connect4.classes.GameInstance;
 import com.altice_crt_b.connect4.classes.Player;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity {
@@ -45,6 +47,16 @@ public class GameActivity extends AppCompatActivity {
             player1 = new Player(extras.getString("player_1_username"));
             player2 = new Player(extras.getString("player_2_username"));
             gameInstance = new GameInstance(player1, player2, extras.getInt("starting_player"));
+            TextView playerName = (TextView) findViewById(R.id.player_center_text);
+            if(gameInstance.getTurn() == 1) {
+                playerName.setText(player1.getUsername());
+            }
+            else {
+                playerName.setText(player2.getUsername());
+                ((ImageView) findViewById(R.id.p1_center_icon)).setVisibility(View.INVISIBLE);
+                ((ImageView) findViewById(R.id.p2_center_icon)).setVisibility(View.VISIBLE);
+            }
+
         }
         else {
             player1 = new Player(getString(R.string.default_p_1_name));
@@ -52,11 +64,11 @@ public class GameActivity extends AppCompatActivity {
             gameInstance = new GameInstance(player1, player2);
         }
         //Set the names on the players to display on their respective textViews.
-        TextView p1Name = (TextView) findViewById(R.id.p1_name);
-        TextView p2Name = (TextView) findViewById(R.id.p2_name);
-
-        p1Name.setText(player1.getUsername());
-        p2Name.setText(player2.getUsername());
+//        TextView p1Name = (TextView) findViewById(R.id.p1_name);
+//        TextView p2Name = (TextView) findViewById(R.id.p2_name);
+//
+//        p1Name.setText(player1.getUsername());
+//        p2Name.setText(player2.getUsername());
         gameEndDialog = new AlertDialog.Builder(GameActivity.this )
                 .setTitle(R.string.game_finished_title)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -163,39 +175,100 @@ public class GameActivity extends AppCompatActivity {
 
     public void toggleTurn() {
         //Initialize Variables
-        Player activePlayer = gameInstance.toggleTurn();
+        final Player activePlayer = gameInstance.toggleTurn();
         int turn = gameInstance.getTurn();
 
         //Find the views related to each player.
-        TextView p1Name = (TextView) findViewById(R.id.p1_name);
-        TextView p2Name = (TextView) findViewById(R.id.p2_name);
-        ImageView p1Pic = (ImageView) findViewById(R.id.p1_icon);
-        ImageView p2Pic = (ImageView) findViewById(R.id.p2_icon);
-        Animation bounce = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_loop);
+//        final TextView p1Name = (TextView) findViewById(R.id.p1_name);
+//        TextView p2Name = (TextView) findViewById(R.id.p2_name);
+//        ImageView p1Pic = (ImageView) findViewById(R.id.p1_icon);
+//        ImageView p2Pic = (ImageView) findViewById(R.id.p2_icon);
+
+        final ImageView p1CenteredPic = (ImageView) findViewById(R.id.p1_center_icon);
+        final ImageView p2CenteredPic = (ImageView) findViewById(R.id.p2_center_icon);
+        final TextView playerCenteredName = (TextView) findViewById(R.id.player_center_text);
+        final Animation overshootOnEnter = AnimationUtils.loadAnimation(GameActivity.this, R.anim.overshoot_on_enter);
+        Animation anticipateOnExit = AnimationUtils.loadAnimation(GameActivity.this, R.anim.anticipate_on_exit);
+
+//        Animation bounce = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_loop);
 
         //It's the 1st player's Turn.
         if(turn == 1) {
-            ObjectAnimator fadeToWhite = ObjectAnimator.ofObject(p1Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,0,0,0), Color.argb(255,255,255,255));
-            fadeToWhite.setDuration(500);
-            fadeToWhite.start();
+            Log.wtf(TAG, "It's the 1st Player Turn");
+//            ObjectAnimator fadeToWhite = ObjectAnimator.ofObject(p1Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,0,0,0), Color.argb(255,255,255,255));
+//            fadeToWhite.setDuration(500);
+//            fadeToWhite.start();
+//
+//            ObjectAnimator fadeToBlack = ObjectAnimator.ofObject(p2Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,255,255,255), Color.argb(255,0,0,0));
+//            fadeToBlack.setDuration(500);
+//            fadeToBlack.start();
+//            p2Pic.clearAnimation();
+//            p1Pic.startAnimation(bounce);
+            anticipateOnExit.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    ObjectAnimator fadeOut = ObjectAnimator.ofObject(playerCenteredName, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,255,255,255), Color.argb(0,255,255,255));
+                    fadeOut.setDuration(550);
+                    fadeOut.start();
+                }
 
-            ObjectAnimator fadeToBlack = ObjectAnimator.ofObject(p2Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,255,255,255), Color.argb(255,0,0,0));
-            fadeToBlack.setDuration(500);
-            fadeToBlack.start();
-            p2Pic.clearAnimation();
-            p1Pic.startAnimation(bounce);
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    //On End, we'll enter the other animation.
+                    p2CenteredPic.setVisibility(View.INVISIBLE);
+                    p1CenteredPic.setVisibility(View.VISIBLE);
+                    p1CenteredPic.startAnimation(overshootOnEnter);
+                    playerCenteredName.setText(activePlayer.getUsername());
+                    ObjectAnimator fadeIn = ObjectAnimator.ofObject(playerCenteredName, "textColor", new android.animation.ArgbEvaluator(), Color.argb(0,255,255,255), Color.argb(255,255,255,255));
+                    fadeIn.setDuration(550);
+                    fadeIn.start();
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                    //Nothing on Repeat
+                }
+            });
+            p2CenteredPic.startAnimation(anticipateOnExit);
         }
         //It's the 2nd player's Turn.
         else {
-            ObjectAnimator fadeToWhite = ObjectAnimator.ofObject(p2Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,0,0,0), Color.argb(255,255,255,255));
-            fadeToWhite.setDuration(500);
-            fadeToWhite.start();
+            Log.wtf(TAG, "It's the 2nd Player Turn");
+//            ObjectAnimator fadeToWhite = ObjectAnimator.ofObject(p2Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,0,0,0), Color.argb(255,255,255,255));
+//            fadeToWhite.setDuration(500);
+//            fadeToWhite.start();
+//
+//            ObjectAnimator fadeToBlack = ObjectAnimator.ofObject(p1Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,255,255,255), Color.argb(255,0,0,0));
+//            fadeToBlack.setDuration(400);
+//            fadeToBlack.start();
+//            p1Pic.clearAnimation();
+//            p2Pic.startAnimation(bounce);
+            anticipateOnExit.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    ObjectAnimator fadeOut = ObjectAnimator.ofObject(playerCenteredName, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,255,255,255), Color.argb(0,255,255,255));
+                    fadeOut.setDuration(550);
+                    fadeOut.start();
+                }
 
-            ObjectAnimator fadeToBlack = ObjectAnimator.ofObject(p1Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,255,255,255), Color.argb(255,0,0,0));
-            fadeToBlack.setDuration(400);
-            fadeToBlack.start();
-            p1Pic.clearAnimation();
-            p2Pic.startAnimation(bounce);
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    //On End, we'll enter the other animation.
+                    p1CenteredPic.setVisibility(View.INVISIBLE);
+                    p2CenteredPic.setVisibility(View.VISIBLE);
+                    p2CenteredPic.startAnimation(overshootOnEnter);
+                    playerCenteredName.setText(activePlayer.getUsername());
+                    ObjectAnimator fadeIn = ObjectAnimator.ofObject(playerCenteredName, "textColor", new android.animation.ArgbEvaluator(), Color.argb(0,255,255,255), Color.argb(255,255,255,255));
+                    fadeIn.setDuration(550);
+                    fadeIn.start();
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                    //Nothing on Repeat
+                }
+            });
+            p1CenteredPic.startAnimation(anticipateOnExit);
         }
     }
 }
