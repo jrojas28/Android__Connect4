@@ -14,12 +14,14 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.altice_crt_b.connect4.R;
 import com.altice_crt_b.connect4.adapters.BoardGridAdapter;
 import com.altice_crt_b.connect4.classes.GameInstance;
+import com.altice_crt_b.connect4.classes.GameMessage;
 import com.altice_crt_b.connect4.classes.Player;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -36,6 +38,8 @@ import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchUpdateCa
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
@@ -48,6 +52,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
     private Player player2;
     private GameInstance gameInstance;
     private ArrayList<Integer> usedPositions;
+    private int myTurn = -1;
 
     // Client used to interact with the TurnBasedMultiplayer system.
     private TurnBasedMultiplayerClient mTurnBasedMultiplayerClient = null;
@@ -57,6 +62,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
     private String mDisplayName;
     private String mPlayerId;
     private TurnBasedMatch mMatch;
+    private LinearLayout waitingForPlayerLy;
 
 
     @Override
@@ -86,12 +92,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
             player2 = new Player(getString(R.string.default_p_2_name));
             gameInstance = new GameInstance(player1, player2);
         }
-//          Set the names on the players to display on their respective textViews.
-//        TextView p1Name = (TextView) findViewById(R.id.p1_name);
-//        TextView p2Name = (TextView) findViewById(R.id.p2_name);
-//
-//        p1Name.setText(player1.getUsername());
-//        p2Name.setText(player2.getUsername());
+
         gameEndDialog = new AlertDialog.Builder(MultiplayerGameActivity.this )
                 .setTitle(R.string.game_finished_title)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -120,10 +121,19 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         tilesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-            handlePlay(i);
-            itemClick();
+            //if the row was placed then send the play
+            if(gameInstance.getTurn() == myTurn){
+                if(handlePlay(i)){
+                    sendPlay(i);
+                }
+            }
+
+
             }
         });
+
+        waitingForPlayerLy = findViewById(R.id.waiting_for_player_layout);
+        showWaitingLayout(true);
 
         if(isSignedIn()){
             Log.d(TAG, "Connected");
@@ -132,8 +142,10 @@ public class MultiplayerGameActivity extends AppCompatActivity {
             Log.d(TAG, "Not Connected");
         }
     }
-
-    public void handlePlay(int clickedItem){
+    public void showWaitingLayout(boolean show){
+        waitingForPlayerLy.setVisibility( show ? View.VISIBLE : View.GONE);
+    }
+    public boolean handlePlay(int clickedItem){
         //If the game isn't finished, handle the last play.
         if( !gameInstance.getGameStatus() ) {
             int column = clickedItem % 7;
@@ -150,12 +162,14 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                 }
 
                 toggleTurn();
+                return true;
 
             }
         }
         else {
             gameEndDialog.show();
         }
+        return false;
     }
 
     public void placeChipAnimated(int position){
@@ -204,9 +218,6 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         chipLayout.startAnimation(dropOnExit);
     }
 
-    private boolean isSignedIn() {
-        return GoogleSignIn.getLastSignedInAccount(this) != null;
-    }
     public void toggleTurn() {
         //Initialize Variables
         final Player activePlayer = gameInstance.toggleTurn();
@@ -306,25 +317,12 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         }
     }
 
-    public void quickMatch() {
-        Log.d("QUICKMATCH", "quickmatch");
-        Bundle autoMatchCriteria = RoomConfig.createAutoMatchCriteria(1, 1, 0);
-
-        TurnBasedMatchConfig turnBasedMatchConfig = TurnBasedMatchConfig.builder()
-                .setAutoMatchCriteria(autoMatchCriteria).build();
-
-        //showSpinner();
-
-        // Start the match
-        mTurnBasedMultiplayerClient.createMatch(turnBasedMatchConfig)
-                .addOnSuccessListener(new OnSuccessListener<TurnBasedMatch>() {
-                    @Override
-                    public void onSuccess(TurnBasedMatch turnBasedMatch) {
-                        Log.d("QUICKMATCH", "match created");
-                        onInitiateMatch(turnBasedMatch);
-                    }
-                })
-                .addOnFailureListener(createFailureListener("There was a problem creating a match!"));
+    /**
+     * Check if there's an account signed in with google services
+     * @return boolean
+     */
+    private boolean isSignedIn() {
+        return GoogleSignIn.getLastSignedInAccount(this) != null;
     }
 
     // This is a helper function that will do all the setup to create a simple failure message.
@@ -351,8 +349,8 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                     .setNeutralButton(android.R.string.ok, null)
                     .show();
 
-            TurnBasedMatch match = matchOutOfDateApiException.getMatch();
-            //updateMatch(match);
+            mMatch = matchOutOfDateApiException.getMatch();
+
 
             return;
         }
@@ -374,6 +372,10 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Function used to get the signed player information and start the match process
+     * @param googleSignInAccount
+     */
     private void onConnected(GoogleSignInAccount googleSignInAccount) {
         Log.d(TAG, "onConnected(): connected to Google APIs");
 
@@ -433,47 +435,86 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         mTurnBasedMultiplayerClient.registerTurnBasedMatchUpdateCallback(mMatchUpdateCallback);
     }
 
+    /**
+     * Starts the turnbased quick match. Once created proceeds to call the match initialization.
+     */
+    public void quickMatch() {
+        Log.d("QUICKMATCH", "quickmatch");
+        Bundle autoMatchCriteria = RoomConfig.createAutoMatchCriteria(1, 1, 0);
+
+        TurnBasedMatchConfig turnBasedMatchConfig = TurnBasedMatchConfig.builder()
+                .setAutoMatchCriteria(autoMatchCriteria).build();
+
+        //showSpinner();
+
+        // Start the match
+        mTurnBasedMultiplayerClient.createMatch(turnBasedMatchConfig)
+                .addOnSuccessListener(new OnSuccessListener<TurnBasedMatch>() {
+                    @Override
+                    public void onSuccess(TurnBasedMatch turnBasedMatch) {
+                        Log.d("QUICKMATCH", "match created correctly");
+                        onInitiateMatch(turnBasedMatch);
+                    }
+                })
+                .addOnFailureListener(createFailureListener("There was a problem creating a match!"));
+    }
+
+
+    /**
+     * Initiates the match's data and assigns each player's position or order.
+     * @param match the turnbased match acquired from  mTurnBasedMultiplayerClient.createMatch in 'quickmatch()' method
+     */
     private void onInitiateMatch(TurnBasedMatch match) {
         Log.d("QUICKMATCH", "initiating match");
 
+        //This means the player 1 is already set
         if (match.getData() != null) {
-            String data = "null";
-            try {
-                 data = new String(match.getData(), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            Log.d("QUICKMATCH", "initiating match already created: " + data );
-            // This is a game that has already started, so I'll just start
-            updateMatch(match);
+
+            // This game was already created by another player so that means i should toggle to be player 2
+            //updateMatch(match);
+            setPlayerInfo(2, mDisplayName);
+            myTurn = 2;
+            handleOtherPlayer(match);
+            sendInitialPlayerInfo(2, match);
             return;
         }
-
-        startMatch(match);
+        myTurn = 1;
+        setPlayerInfo(1, mDisplayName);
+        sendInitialPlayerInfo(1, match);
     }
 
-    public void startMatch(TurnBasedMatch match) {
+    /**
+     * In charge of sending the initial exchange messages between players
+     * @param player where it's player 1 or 2 who is issuing the message for the opposite player.
+     * @param match
+     */
+    public void sendInitialPlayerInfo(int player, final TurnBasedMatch match) {
+        //
         Log.d("QUICKMATCH", "starting match");
 
         mMatch = match;
 
-        String FIRSTnextParticipantId = mMatch.getParticipantId(mPlayerId);
-
         //showSpinner();
         Log.d("QUICKMATCH", "FIRSTnextParticipantId: "   + getNextParticipantId(mPlayerId,match));
+        GameMessage initialMessage = new GameMessage(true, player, mDisplayName);
 
         mTurnBasedMultiplayerClient.takeTurn(match.getMatchId(),
-                ("data" + mDisplayName ).getBytes(), getNextParticipantId(mPlayerId,match))
+                 SerializationUtils.serialize(initialMessage), getNextParticipantId(mPlayerId,match))
                 .addOnSuccessListener(new OnSuccessListener<TurnBasedMatch>() {
                     @Override
                     public void onSuccess(TurnBasedMatch turnBasedMatch) {
                         Log.d("QUICKMATCH", "started match");
-                        updateMatch(turnBasedMatch);
+                        mMatch = turnBasedMatch;
+                        //updateMatch(turnBasedMatch);
                     }
                 })
                 .addOnFailureListener(createFailureListener("There was a problem taking a turn!"));
     }
 
+    /**NOT BEING USED CURRENTLY
+     * Method imported from example to see the different statuses of a match.
+     * @param match
+     */
     public void updateMatch(TurnBasedMatch match) {
         Log.d("QUICKMATCH", "updating match");
         mMatch = match;
@@ -527,11 +568,13 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                         "Still waiting for invitations.\n\nBe patient!");
         }
 
-        //mTurnData = null;
-
-        //setViewVisibility();
     }
 
+    /**
+     * Method used to display alert dialogs.
+     * @param title
+     * @param message
+     */
     public void showWarning(String title, String message) {
         android.app.AlertDialog.Builder alertDialogBuilder = new android.app.AlertDialog.Builder(this);
 
@@ -572,28 +615,41 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
         //setViewVisibility();
     }
-    public void itemClick() {
+
+    /**
+     * Method used to send the play made by a player. Sends the position clicked by the player on the board by the other player.
+     * @param clickedPosition
+     */
+    public void sendPlay(int clickedPosition) {
         //howSpinner();
 
-        String nextParticipantId = getNextParticipantId(mPlayerId, mMatch);
-        // Create the next turn
-        Log.d("QUICKMATCH", "nextParticipantId: "   + nextParticipantId);
-        mTurnBasedMultiplayerClient.takeTurn(mMatch.getMatchId(),
-                ("data" + mDisplayName ).getBytes(), nextParticipantId)
-                .addOnSuccessListener(new OnSuccessListener<TurnBasedMatch>() {
-                    @Override
-                    public void onSuccess(TurnBasedMatch turnBasedMatch) {
-                        Log.d("QUICKMATCH", "clicked item match");
-                        updateMatch(turnBasedMatch);
-                        //onUpdateMatch(turnBasedMatch);
-                    }
-                })
-                .addOnFailureListener(createFailureListener("There was a problem taking a turn!"));
+            String nextParticipantId = getNextParticipantId(mPlayerId, mMatch);
+            GameMessage turnMessage = new GameMessage(0, clickedPosition);
+            // Create the next turn
+            Log.d("QUICKMATCH", "nextParticipantId: " + nextParticipantId);
+            mTurnBasedMultiplayerClient.takeTurn(mMatch.getMatchId(),
+                   SerializationUtils.serialize(turnMessage), nextParticipantId)
+                    .addOnSuccessListener(new OnSuccessListener<TurnBasedMatch>() {
+                        @Override
+                        public void onSuccess(TurnBasedMatch turnBasedMatch) {
+                            Log.d("QUICKMATCH", "clicked item match");
+                            mMatch = turnBasedMatch;
+                            //updateMatch(turnBasedMatch);
+                            //onUpdateMatch(turnBasedMatch);
+                        }
+                    })
+                    .addOnFailureListener(createFailureListener("There was a problem taking a turn!"));
 
 
     }
 
-    //Returns null if it's waiting for a participant
+    /**
+     * Method used to get who's the one that will receive a turn
+     *
+     * @param myPlayerId
+     * @param match
+     * @return String if there's a participant otherwise returns null
+     */
     public String getNextParticipantId(String myPlayerId, TurnBasedMatch match) {
         String myParticipantId = match.getParticipantId(myPlayerId);
 
@@ -621,20 +677,47 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         }
     }
 
-    //These listeners are the ones used to update the match data
+    /**
+     * Method used to handle the messages interchanged by players.
+     * I.e if it's not an init message proceeds to send the played position made by the opposite player calling 'handlePlay()'
+     * @param turnBasedMatch
+     */
+    public void handleOtherPlayer(TurnBasedMatch turnBasedMatch){
+        mMatch = turnBasedMatch;
+        GameMessage m = SerializationUtils.deserialize(turnBasedMatch.getData());
+        Log.d("DESERIALIZING:", m.isInitial() + " " + m.getPlayer() + " " + m.getPositionPlayed());
+        if(!m.isInitial()){
+            handlePlay(m.getPositionPlayed());
+        }else{
+            setPlayerInfo(m.getPlayer(), m.getDisplayName());
+        }
+
+
+    }
+
+    /**
+     * Method used to set the players basic info
+     * @param player
+     * @param displayName
+     */
+    public void setPlayerInfo(int player, String displayName){
+        if(player == 1){
+            player1.setUsername(displayName);
+        }else if (player == 2){
+            player2.setUsername(displayName);
+        }
+    }
+
+    /**
+     * Listener that listens for match changes made by other players.
+     */
     private TurnBasedMatchUpdateCallback mMatchUpdateCallback = new TurnBasedMatchUpdateCallback() {
         @Override
         public void onTurnBasedMatchReceived(@NonNull TurnBasedMatch turnBasedMatch) {
-            mMatch = turnBasedMatch;
-            if (mMatch.getData() != null) {
-                String data = "null";
-                try {
-                    data = new String(mMatch.getData(), "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                Toast.makeText(MultiplayerGameActivity.this, "A match was updated by" + data, Toast.LENGTH_LONG).show();
-            }
+
+            showWaitingLayout(false);
+            handleOtherPlayer(turnBasedMatch);
+            Toast.makeText(MultiplayerGameActivity.this, "A match was updated ", Toast.LENGTH_LONG).show();
 
         }
 

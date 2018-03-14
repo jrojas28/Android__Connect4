@@ -147,4 +147,26 @@
             android:layout_height="wrap_content"/>
         <!-- Tile Grid End -->
     </RelativeLayout>
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/waiting_for_player_layout"
+        android:orientation="vertical"
+        android:background="#cbffffff"
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:layout_height="match_parent">
+        <TextView
+            android:padding="10dp"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:text="Waiting for a player to join..."
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+
 </RelativeLayout>
