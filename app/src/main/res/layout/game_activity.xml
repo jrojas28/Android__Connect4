@@ -19,9 +19,9 @@
             android:layout_alignParentTop="true"
             android:gravity="center"
             android:paddingBottom="5dp"
-            android:text="Currently Playing"
+            android:text="@string/currently_playing"
             android:textColor="@android:color/white"
-            android:textSize="14dp"
+            android:textSize="14sp"
             android:textAllCaps="true"
             />
         <ImageView
@@ -48,9 +48,9 @@
             android:gravity="center"
             android:paddingTop="5dp"
             android:layout_below="@id/p1_center_icon"
-            android:text="Player 1"
+            android:text="@string/default_p_1_name"
             android:textColor="@android:color/white"
-            android:textSize="14dp"
+            android:textSize="14sp"
             android:textStyle="bold"
             android:textAllCaps="true"
             />
@@ -154,12 +154,14 @@
         android:background="#cbffffff"
         android:layout_width="match_parent"
         android:gravity="center_vertical"
+        android:focusable="true"
+        android:clickable="true"
         android:layout_height="match_parent">
         <TextView
             android:padding="10dp"
             android:textSize="20sp"
             android:gravity="center"
-            android:text="Waiting for a player to join..."
+            android:text="@string/player_waiting_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
         <ProgressBar

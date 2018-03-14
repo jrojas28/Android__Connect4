@@ -25,5 +25,7 @@
     <string name="error_get_inbox_intent">There was a problem getting the inbox intent!</string>
     <string name="error_get_select_opponents">There was a problem getting the select opponents intent!</string>
     <string name="turn_label">Turn %1$d</string>
+    <string name="player_waiting_text">Waiting for a player to join...</string>
+    <string name="currently_playing">Currently Playing</string>
 
 </resources>
