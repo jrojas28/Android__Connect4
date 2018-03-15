@@ -3,6 +3,7 @@ package com.altice_crt_b.connect4.activities;
 import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -126,6 +127,7 @@ public class GameActivity extends AppCompatActivity {
                 usedPositions.add(position);
 
                 if( gameInstance.getGameStatus() ){
+                    displayWinningChips();
                     gameEndDialog.setMessage( String.format( getString(R.string.game_end_content), gameInstance.getWinner().getUsername() ));
                     gameEndDialog.show();
                 }
@@ -136,6 +138,20 @@ public class GameActivity extends AppCompatActivity {
         }
         else {
             gameEndDialog.show();
+        }
+    }
+
+    public void displayWinningChips(){
+
+        boolean firstWon = gameInstance.getWinner().equals(player1);
+        for(Point p : gameInstance.getLastWinningPattern() ){
+            int position = p.x * 7  + p.y;
+            View chipLayout = ( View )chipsView.getItemAtPosition(position);
+            ImageView chipView = chipLayout.findViewById(R.id.chip);
+
+            chipView.setImageResource( firstWon ? R.drawable.chip_vector_p1_w :
+                    R.drawable.chip_vector_p2_w );
+
         }
     }
 
