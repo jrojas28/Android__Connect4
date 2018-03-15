@@ -109,6 +109,16 @@ public class GameInstance {
     }
 
     /**
+     * Function intended to reset the game and start a new one.
+     * @param int turn -- The turn of the player who will start the game.
+     */
+    public void reset(int turn) {
+        this.board = new int[6][7];
+        this.finished = false;
+        this.turn = turn;
+    }
+
+    /**
      * Function intended to help determine chip placement on the board.
      * @param column -- the column on which the player decided to place his chip.
      * @return int row -- the row on which the player's chip was placed.
