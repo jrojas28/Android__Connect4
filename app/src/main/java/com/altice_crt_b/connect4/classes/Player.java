@@ -24,4 +24,8 @@ public class Player {
     public void incrementGamesWon(int increment) {
         this.gamesWon += increment;
     }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }
