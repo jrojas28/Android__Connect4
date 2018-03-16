@@ -23,25 +23,15 @@
         android:gravity="center">
 
             <android.support.v7.widget.AppCompatButton
-                android:layout_margin="10dp"
+                style="@style/styled_button"
                 android:id="@+id/local_multiplayer_btn"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_gravity="center"
                 android:text="@string/local_multiplayer"
-                android:textColor="#fff"
-                android:textStyle="bold"
                 app:backgroundTint="@color/colorPrimaryDark"
                 android:gravity="center"/>
 
             <android.support.v7.widget.AppCompatButton
-                android:layout_margin="10dp"
+                style="@style/styled_button"
                 android:id="@+id/online_multiplayer_btn"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_gravity="center"
-                android:textColor="#fff"
-                android:textStyle="bold"
                 android:text="@string/online_multiplayer"
                 app:backgroundTint="@color/colorPrimaryDark"
                 android:gravity="center"/>

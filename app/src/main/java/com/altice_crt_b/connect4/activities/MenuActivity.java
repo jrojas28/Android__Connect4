@@ -98,13 +98,7 @@ public class MenuActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(isSignedIn()){
-                    Intent intent = new Intent(MenuActivity.this, MultiplayerGameActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putString("player_1_username", "Player 1");
-                    bundle.putString("player_2_username", "Player 2");
-                    bundle.putInt("starting_player", 1);
-                    intent.putExtras(bundle);
-                    startActivity(intent);
+                    launchMultiplayerActivity();
                 }else{
                     startActivityForResult(mGoogleSignInClient.getSignInIntent(), RC_SIGN_IN);
                 }
@@ -136,7 +130,7 @@ public class MenuActivity extends AppCompatActivity {
 
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                onConnected(account);
+                launchMultiplayerActivity();
             } catch (ApiException apiException) {
                 String message = apiException.getMessage();
                 Log.d("SigningIn", "" + apiException.getStatusCode());
@@ -174,7 +168,6 @@ public class MenuActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "signInSilently(): success");
-                            onConnected(task.getResult());
                         } else {
                             Log.d(TAG, "signInSilently(): failure", task.getException());
                             onDisconnected();
@@ -183,63 +176,14 @@ public class MenuActivity extends AppCompatActivity {
                 });
     }
 
-    private void onConnected(GoogleSignInAccount googleSignInAccount) {
-        Log.d(TAG, "onConnected(): connected to Google APIs");
-
-        mTurnBasedMultiplayerClient = Games.getTurnBasedMultiplayerClient(this, googleSignInAccount);
-        mInvitationsClient = Games.getInvitationsClient(this, googleSignInAccount);
-
-        Games.getPlayersClient(this, googleSignInAccount)
-                .getCurrentPlayer()
-                .addOnSuccessListener(
-                        new OnSuccessListener<Player>() {
-                            @Override
-                            public void onSuccess(Player player) {
-                                mDisplayName = player.getDisplayName();
-                                mPlayerId = player.getPlayerId();
-                                quickMatch();
-                               // selectOpponent();
-
-                                //setViewVisibility();
-                            }
-                        }
-                )
-                .addOnFailureListener(createFailureListener("There was a problem getting the player!"));
-
-        Log.d(TAG, "onConnected(): Connection successful");
-
-        // Retrieve the TurnBasedMatch from the connectionHint
-        GamesClient gamesClient = Games.getGamesClient(this, googleSignInAccount);
-        gamesClient.getActivationHint()
-                .addOnSuccessListener(new OnSuccessListener<Bundle>() {
-                    @Override
-                    public void onSuccess(Bundle hint) {
-                        if (hint != null) {
-                            TurnBasedMatch match = hint.getParcelable(Multiplayer.EXTRA_TURN_BASED_MATCH);
-
-                            if (match != null) {
-                                //updateMatch(match);
-                            }
-                        }
-                    }
-                })
-                .addOnFailureListener(createFailureListener(
-                        "There was a problem getting the activation hint!"));
-
-
-
-        // As a demonstration, we are registering this activity as a handler for
-        // invitation and match events.
-
-        // This is *NOT* required; if you do not register a handler for
-//        // invitation events, you will get standard notifications instead.
-//        // Standard notifications may be preferable behavior in many cases.
-//        mInvitationsClient.registerInvitationCallback(mInvitationCallback);
-//
-//        // Likewise, we are registering the optional MatchUpdateListener, which
-//        // will replace notifications you would get otherwise. You do *NOT* have
-//        // to register a MatchUpdateListener.
-//        mTurnBasedMultiplayerClient.registerTurnBasedMatchUpdateCallback(mMatchUpdateCallback);
+    private void launchMultiplayerActivity() {
+        Intent intent = new Intent(MenuActivity.this, MultiplayerGameActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("player_1_username", "Player 1");
+        bundle.putString("player_2_username", "Player 2");
+        bundle.putInt("starting_player", 1);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 
     // This is a helper functio that will do all the setup to create a simple failure message.

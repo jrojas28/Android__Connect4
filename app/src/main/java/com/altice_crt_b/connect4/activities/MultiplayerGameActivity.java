@@ -2,7 +2,9 @@ package com.altice_crt_b.connect4.activities;
 
 import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -19,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.altice_crt_b.connect4.MainActivty;
 import com.altice_crt_b.connect4.R;
 import com.altice_crt_b.connect4.adapters.BoardGridAdapter;
 import com.altice_crt_b.connect4.classes.GameInstance;
@@ -64,7 +67,8 @@ public class MultiplayerGameActivity extends AppCompatActivity {
     private String mDisplayName;
     private String mPlayerId;
     private TurnBasedMatch mMatch;
-    private LinearLayout waitingForPlayerLy;
+    private View waitingForPlayerLy;
+    private TextView playerCenteredName;
     private Button cancelButton;
 
 
@@ -76,17 +80,18 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         usedPositions = new ArrayList<>();
         cancelButton = findViewById(R.id.cancel_btn);
+        playerCenteredName = findViewById(R.id.player_center_text);
         //Initialize the players & the instance.
         if(extras != null) {
             player1 = new Player(extras.getString("player_1_username"));
             player2 = new Player(extras.getString("player_2_username"));
             gameInstance = new GameInstance(player1, player2, extras.getInt("starting_player"));
-            TextView playerName = (TextView) findViewById(R.id.player_center_text);
+
             if(gameInstance.getTurn() == 1) {
-                playerName.setText(player1.getUsername());
+                playerCenteredName.setText(player1.getUsername());
             }
             else {
-                playerName.setText(player2.getUsername());
+                playerCenteredName.setText(player2.getUsername());
                 ((ImageView) findViewById(R.id.p1_center_icon)).setVisibility(View.INVISIBLE);
                 ((ImageView) findViewById(R.id.p2_center_icon)).setVisibility(View.VISIBLE);
             }
@@ -98,13 +103,18 @@ public class MultiplayerGameActivity extends AppCompatActivity {
             gameInstance = new GameInstance(player1, player2);
         }
 
+
+
         gameEndDialog = new AlertDialog.Builder(MultiplayerGameActivity.this )
                 .setTitle(R.string.game_finished_title)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                    gameInstance.reset();
-                    cleanBoard();
+                        //We reload the activity instead of going back, can be accomplished in a more polished way
+                        cleanClients();
+                        Intent refresh = new Intent(MultiplayerGameActivity.this, MultiplayerGameActivity.class);
+                        startActivity(refresh);
+                        finish(); //
                 }
                 })
                 .setNegativeButton("Back to Main Menu", new DialogInterface.OnClickListener() {
@@ -147,8 +157,6 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                 }
             });
 
-
-
         if(isSignedIn()){
             Log.d(TAG, "Connected");
             onConnected(GoogleSignIn.getLastSignedInAccount(this));
@@ -156,6 +164,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
             Log.d(TAG, "Not Connected");
         }
     }
+
     public void showWaitingLayout(boolean show){
         waitingForPlayerLy.setVisibility( show ? View.VISIBLE : View.GONE);
     }
@@ -171,6 +180,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                 usedPositions.add(position);
 
                 if( gameInstance.getGameStatus() ){
+                    displayWinningChips();
                     gameEndDialog.setMessage( String.format( getString(R.string.game_end_content), gameInstance.getWinner().getUsername() ));
                     gameEndDialog.show();
                 }
@@ -245,7 +255,6 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
         final ImageView p1CenteredPic = (ImageView) findViewById(R.id.p1_center_icon);
         final ImageView p2CenteredPic = (ImageView) findViewById(R.id.p2_center_icon);
-        final TextView playerCenteredName = (TextView) findViewById(R.id.player_center_text);
         final Animation overshootOnEnter = AnimationUtils.loadAnimation(MultiplayerGameActivity.this, R.anim.overshoot_on_enter);
         Animation anticipateOnExit = AnimationUtils.loadAnimation(MultiplayerGameActivity.this, R.anim.anticipate_on_exit);
 
@@ -328,6 +337,20 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                 }
             });
             p1CenteredPic.startAnimation(anticipateOnExit);
+        }
+    }
+
+    public void displayWinningChips(){
+
+        boolean firstWon = gameInstance.getWinner().equals(player1);
+        for(Point p : gameInstance.getLastWinningPattern() ){
+            int position = p.x * 7  + p.y;
+            View chipLayout = ( View )chipsView.getItemAtPosition(position);
+            ImageView chipView = chipLayout.findViewById(R.id.chip);
+
+            chipView.setImageResource( firstWon ? R.drawable.chip_vector_p1_w :
+                    R.drawable.chip_vector_p2_w );
+
         }
     }
 
@@ -485,18 +508,24 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
         //This means the player 1 is already set
         if (match.getData() != null) {
-
-            // This game was already created by another player so that means i should toggle to be player 2
-            //updateMatch(match);
-            setPlayerInfo(2, mDisplayName);
+            // This game was already created by another player so that means i should be assigned to be player 2
+            // and get the init message sent by player 1
             myTurn = 2;
             handleOtherPlayer(match);
-            sendInitialPlayerInfo(2, match);
-            return;
+        }else{
+            myTurn = 1;
         }
-        myTurn = 1;
-        setPlayerInfo(1, mDisplayName);
-        sendInitialPlayerInfo(1, match);
+
+        setPlayerInfo(myTurn, mDisplayName);
+        sendInitialPlayerInfo(myTurn, match);
+        refreshPlayerTextView();
+    }
+
+    /**
+     * Method used to change the active player textview once the init messages are received.
+     */
+    public void refreshPlayerTextView() {
+        playerCenteredName.setText( gameInstance.getTurn() == 1 ? player1.getUsername() : player2.getUsername() );
     }
 
     /**
@@ -542,6 +571,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         switch (status) {
             case TurnBasedMatch.MATCH_STATUS_CANCELED:
                 Log.d("QUICKMATCH", "updating status: canceled");
+                Toast.makeText(MultiplayerGameActivity.this, R.string.match_cancelled_by_player, Toast.LENGTH_LONG).show();
                 cancelMatch(match.getMatchId());
                 //showWarning("Canceled!", "This game was canceled!");
                 return;
@@ -556,17 +586,17 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                 return;
             case TurnBasedMatch.MATCH_STATUS_COMPLETE:
                 Log.d("QUICKMATCH", "updating status: complete");
-                if (turnStatus == TurnBasedMatch.MATCH_TURN_STATUS_COMPLETE) {
-                    showWarning("Complete!",
-                            "This game is over; someone finished it, and so did you!  " +
-                                    "There is nothing to be done.");
-                    break;
-                }
+//                if (turnStatus == TurnBasedMatch.MATCH_TURN_STATUS_COMPLETE) {
+//                    showWarning("Complete!",
+//                            "This game is over; someone finished it, and so did you!  " +
+//                                    "There is nothing to be done.");
+//                    break;
+//                }
 
                 // Note that in this state, you must still call "Finish" yourself,
                 // so we allow this to continue.
-                showWarning("Complete!",
-                        "This game is over; someone finished it!  You can only finish it now.");
+//                showWarning("Complete!",
+//                        "This game is over; someone finished it!  You can only finish it now.");
         }
 
         // OK, it's active. Check on turn status.
@@ -640,23 +670,28 @@ public class MultiplayerGameActivity extends AppCompatActivity {
      */
     public void sendPlay(int clickedPosition) {
         //howSpinner();
+        String nextParticipantId = getNextParticipantId(mPlayerId, mMatch);
+        GameMessage turnMessage = new GameMessage(0, clickedPosition);
+        //if the game is over we send a finished game message instead of taking a turn
+        if(gameInstance.getGameStatus()){
+            mTurnBasedMultiplayerClient.finishMatch(mMatch.getMatchId(), SerializationUtils.serialize(turnMessage));
+            return;
+        }
 
-            String nextParticipantId = getNextParticipantId(mPlayerId, mMatch);
-            GameMessage turnMessage = new GameMessage(0, clickedPosition);
-            // Create the next turn
-            Log.d("QUICKMATCH", "nextParticipantId: " + nextParticipantId);
-            mTurnBasedMultiplayerClient.takeTurn(mMatch.getMatchId(),
-                   SerializationUtils.serialize(turnMessage), nextParticipantId)
-                    .addOnSuccessListener(new OnSuccessListener<TurnBasedMatch>() {
-                        @Override
-                        public void onSuccess(TurnBasedMatch turnBasedMatch) {
-                            Log.d("QUICKMATCH", "clicked item match");
-                            mMatch = turnBasedMatch;
-                            //updateMatch(turnBasedMatch);
-                            //onUpdateMatch(turnBasedMatch);
-                        }
-                    })
-                    .addOnFailureListener(createFailureListener("There was a problem taking a turn!"));
+        // Create the next turn
+        Log.d("QUICKMATCH", "nextParticipantId: " + nextParticipantId);
+        mTurnBasedMultiplayerClient.takeTurn(mMatch.getMatchId(),
+               SerializationUtils.serialize(turnMessage), nextParticipantId)
+                .addOnSuccessListener(new OnSuccessListener<TurnBasedMatch>() {
+                    @Override
+                    public void onSuccess(TurnBasedMatch turnBasedMatch) {
+                        Log.d("QUICKMATCH", "clicked item match");
+                        mMatch = turnBasedMatch;
+                        //updateMatch(turnBasedMatch);
+                        //onUpdateMatch(turnBasedMatch);
+                    }
+                })
+                .addOnFailureListener(createFailureListener("There was a problem taking a turn!"));
 
 
     }
@@ -767,6 +802,11 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
     }
 
+    public void cleanClients(){
+        mTurnBasedMultiplayerClient.unregisterTurnBasedMatchUpdateCallback(mMatchUpdateCallback);
+        mTurnBasedMultiplayerClient = null;
+    }
+
     /**
      * Listener that listens for match changes made by other players.
      */
@@ -776,7 +816,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
             showWaitingLayout(false);
             handleOtherPlayer(turnBasedMatch);
-            Toast.makeText(MultiplayerGameActivity.this, "A match was updated ", Toast.LENGTH_LONG).show();
+            Log.d(TAG,"A match was updated ");
             updateMatch(turnBasedMatch);
         }
 
@@ -789,8 +829,10 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        mTurnBasedMultiplayerClient.unregisterTurnBasedMatchUpdateCallback(mMatchUpdateCallback);
-        super.onDestroy();
+       if(mTurnBasedMultiplayerClient != null){
+           cleanClients();
+       }
+       super.onDestroy();
 
     }
 }

@@ -147,17 +147,18 @@
             android:layout_height="wrap_content"/>
         <!-- Tile Grid End -->
     </RelativeLayout>
-    <LinearLayout
-        android:visibility="gone"
+    <RelativeLayout
+        android:visibility="visible"
         android:id="@+id/waiting_for_player_layout"
         android:orientation="vertical"
         android:background="#cbffffff"
         android:layout_width="match_parent"
-        android:gravity="center_vertical"
         android:focusable="true"
         android:clickable="true"
         android:layout_height="match_parent">
         <TextView
+            android:layout_centerVertical="true"
+            android:id="@+id/waiting_text"
             android:padding="10dp"
             android:textSize="20sp"
             android:gravity="center"
@@ -165,21 +166,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
         <ProgressBar
+            android:layout_below="@id/waiting_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <Button
-            android:visibility="gone"
+        <android.support.v7.widget.AppCompatButton
+            android:layout_alignParentBottom="true"
+            style="@style/styled_button"
+            android:visibility="visible"
             android:id="@+id/cancel_btn"
-            android:layout_width="wrap_content"
-            android:minWidth="200dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_gravity="center"
             android:text="Cancel"
+            app:backgroundTint="@color/colorPrimaryDark"
             />
 
-    </LinearLayout>
+    </RelativeLayout>
 
 
 </RelativeLayout>

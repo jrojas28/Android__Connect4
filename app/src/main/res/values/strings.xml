@@ -31,4 +31,5 @@
     <string name="turn_label">Turn %1$d</string>
     <string name="player_waiting_text">Waiting for a player to join...</string>
     <string name="currently_playing">Currently Playing</string>
+    <string name="match_cancelled_by_player">The other player cancelled the match</string>
 </resources>
