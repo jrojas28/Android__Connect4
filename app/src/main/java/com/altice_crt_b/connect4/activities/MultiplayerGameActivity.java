@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -37,6 +38,7 @@ import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchConfig;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchUpdateCallback;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import org.apache.commons.lang3.SerializationUtils;
 
@@ -63,6 +65,8 @@ public class MultiplayerGameActivity extends AppCompatActivity {
     private String mPlayerId;
     private TurnBasedMatch mMatch;
     private LinearLayout waitingForPlayerLy;
+    private Button cancelButton;
+
 
 
     @Override
@@ -71,6 +75,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         setContentView(R.layout.game_activity);
         Bundle extras = getIntent().getExtras();
         usedPositions = new ArrayList<>();
+        cancelButton = findViewById(R.id.cancel_btn);
         //Initialize the players & the instance.
         if(extras != null) {
             player1 = new Player(extras.getString("player_1_username"));
@@ -134,6 +139,15 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
         waitingForPlayerLy = findViewById(R.id.waiting_for_player_layout);
         showWaitingLayout(true);
+            cancelButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    cancelMatch(mMatch.getMatchId());
+
+                }
+            });
+
+
 
         if(isSignedIn()){
             Log.d(TAG, "Connected");
@@ -454,6 +468,8 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                     public void onSuccess(TurnBasedMatch turnBasedMatch) {
                         Log.d("QUICKMATCH", "match created correctly");
                         onInitiateMatch(turnBasedMatch);
+                        cancelButton.setVisibility(View.VISIBLE);
+
                     }
                 })
                 .addOnFailureListener(createFailureListener("There was a problem creating a match!"));
@@ -496,6 +512,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
         //showSpinner();
         Log.d("QUICKMATCH", "FIRSTnextParticipantId: "   + getNextParticipantId(mPlayerId,match));
+        Log.d("QQUCMATCH", match.getMatchId());
         GameMessage initialMessage = new GameMessage(true, player, mDisplayName);
 
         mTurnBasedMultiplayerClient.takeTurn(match.getMatchId(),
@@ -525,16 +542,17 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         switch (status) {
             case TurnBasedMatch.MATCH_STATUS_CANCELED:
                 Log.d("QUICKMATCH", "updating status: canceled");
-                showWarning("Canceled!", "This game was canceled!");
+                cancelMatch(match.getMatchId());
+                //showWarning("Canceled!", "This game was canceled!");
                 return;
             case TurnBasedMatch.MATCH_STATUS_EXPIRED:
                 Log.d("QUICKMATCH", "updating status: expired");
-                showWarning("Expired!", "This game is expired.  So sad!");
+                //showWarning("Expired!", "This game is expired.  So sad!");
                 return;
             case TurnBasedMatch.MATCH_STATUS_AUTO_MATCHING:
                 Log.d("QUICKMATCH", "updating status: auto-matching");
-                showWarning("Waiting for auto-match...",
-                        "We're still waiting for an automatch partner.");
+                //showWarning("Waiting for auto-match...",
+                //        "We're still waiting for an automatch partner.");
                 return;
             case TurnBasedMatch.MATCH_STATUS_COMPLETE:
                 Log.d("QUICKMATCH", "updating status: complete");
@@ -561,11 +579,11 @@ public class MultiplayerGameActivity extends AppCompatActivity {
             case TurnBasedMatch.MATCH_TURN_STATUS_THEIR_TURN:
                 Log.d("QUICKMATCH", "updating turn: theirs");
                 // Should return results.
-                showWarning("Alas...", "It's not your turn.");
+                //showWarning("Alas...", "It's not your turn.");
                 break;
             case TurnBasedMatch.MATCH_TURN_STATUS_INVITED:
-                showWarning("Good inititative!",
-                        "Still waiting for invitations.\n\nBe patient!");
+                ///showWarning("Good inititative!",
+                 //       "Still waiting for invitations.\n\nBe patient!");
         }
 
     }
@@ -708,6 +726,47 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         }
     }
 
+    public void cancelMatch (String matchID){
+        Log.d(TAG, matchID);
+        Task<String> result = mTurnBasedMultiplayerClient.cancelMatch(matchID);
+        result.addOnSuccessListener(new OnSuccessListener<String>() {
+            @Override
+            public void onSuccess(String s) {
+                MultiplayerGameActivity.this.finish();
+                Log.d(TAG, "Good");
+            }
+        });
+        result.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                MultiplayerGameActivity.this.finish();
+                Log.d(TAG, "Bad");
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+       // super.onBackPressed();
+        Log.d(TAG, "Good");
+        final AlertDialog.Builder cancel = new AlertDialog.Builder(MultiplayerGameActivity.this);
+        cancel.setMessage("Are you sure you want to leave Match?");
+        cancel.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                cancelMatch(mMatch.getMatchId());
+            }
+        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        cancel.show();
+
+
+    }
+
     /**
      * Listener that listens for match changes made by other players.
      */
@@ -718,8 +777,9 @@ public class MultiplayerGameActivity extends AppCompatActivity {
             showWaitingLayout(false);
             handleOtherPlayer(turnBasedMatch);
             Toast.makeText(MultiplayerGameActivity.this, "A match was updated ", Toast.LENGTH_LONG).show();
-
+            updateMatch(turnBasedMatch);
         }
+
 
         @Override
         public void onTurnBasedMatchRemoved(@NonNull String matchId) {
@@ -727,4 +787,10 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         }
     };
 
+    @Override
+    protected void onDestroy() {
+        mTurnBasedMultiplayerClient.unregisterTurnBasedMatchUpdateCallback(mMatchUpdateCallback);
+        super.onDestroy();
+
+    }
 }
