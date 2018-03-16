@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Connect4</string>
+    <string name="app_name">Connect 4</string>
 
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
@@ -9,4 +9,8 @@
     <string name="default_p_1_name">Player 1</string>
     <string name="default_p_2_name">Player 2</string>
     <string name="game_end_content">The Game has been won by %s. Do you want a Rematch?</string>
+    <string name="local_multiplayer">Local Multiplayer</string>
+    <string name="online_multiplayer">Online Multiplayer</string>
+    <string name="developed_by">Developed By:</string>
+    <string name="developers">Emmanuel Estrella \n Jaime Rojas \n Moises Ynfante</string>
 </resources>

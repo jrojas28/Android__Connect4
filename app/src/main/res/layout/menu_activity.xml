@@ -1,36 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:layout_gravity="center"
-    android:padding="10dp"
+    android:padding="0dp"
     android:background="@color/colorPrimary"
     tools:context=".activities.GameActivity">
-    <LinearLayout
+    <ImageView
+        android:id="@+id/logo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:padding="30dp"
+        android:src="@drawable/logo"/>
+    <LinearLayout
+        android:layout_below="@id/logo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_gravity="center">
-        <Button
-            android:id="@+id/local_multiplayer_btn"
-            android:layout_width="wrap_content"
-            android:minWidth="200dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Local Multiplayer"
-            android:gravity="center"/>
-        <Button
-            android:id="@+id/online_multiplayer_btn"
-            android:layout_width="wrap_content"
-            android:minWidth="200dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Online Multiplayer"
-            android:gravity="center"/>
+        android:gravity="center">
+
+            <android.support.v7.widget.AppCompatButton
+                android:layout_margin="10dp"
+                android:id="@+id/local_multiplayer_btn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:text="@string/local_multiplayer"
+                android:textColor="#fff"
+                android:textStyle="bold"
+                app:backgroundTint="@color/colorPrimaryDark"
+                android:gravity="center"/>
+
+            <android.support.v7.widget.AppCompatButton
+                android:layout_margin="10dp"
+                android:id="@+id/online_multiplayer_btn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:textColor="#fff"
+                android:textStyle="bold"
+                android:text="@string/online_multiplayer"
+                app:backgroundTint="@color/colorPrimaryDark"
+                android:gravity="center"/>
     </LinearLayout>
 
-</LinearLayout>
+    <LinearLayout
+       android:orientation="vertical"
+        android:layout_alignParentBottom="true"
+        android:padding="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+
+            android:textSize="16sp"
+            android:textColor="#fff"
+            android:gravity="end"
+            android:text="@string/developed_by"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:textSize="16sp"
+            android:textColor="#fff"
+            android:gravity="end"
+            android:text="@string/developers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>
