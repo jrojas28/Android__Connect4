@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -70,7 +71,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
     private View waitingForPlayerLy;
     private TextView playerCenteredName;
     private Button cancelButton;
-
+    private CountDownTimer timer;
 
 
     @Override
@@ -163,6 +164,8 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         }else{
             Log.d(TAG, "Not Connected");
         }
+
+
     }
 
     public void showWaitingLayout(boolean show){
@@ -184,8 +187,8 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                     gameEndDialog.setMessage( String.format( getString(R.string.game_end_content), gameInstance.getWinner().getUsername() ));
                     gameEndDialog.show();
                 }
-
                 toggleTurn();
+
                 return true;
 
             }
@@ -353,6 +356,8 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
         }
     }
+
+
 
     /**
      * Check if there's an account signed in with google services
@@ -572,7 +577,8 @@ public class MultiplayerGameActivity extends AppCompatActivity {
             case TurnBasedMatch.MATCH_STATUS_CANCELED:
                 Log.d("QUICKMATCH", "updating status: canceled");
                 Toast.makeText(MultiplayerGameActivity.this, R.string.match_cancelled_by_player, Toast.LENGTH_LONG).show();
-                cancelMatch(match.getMatchId());
+                //cancelMatch(match.getMatchId());
+                finish();
                 //showWarning("Canceled!", "This game was canceled!");
                 return;
             case TurnBasedMatch.MATCH_STATUS_EXPIRED:
@@ -670,7 +676,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
      */
     public void sendPlay(int clickedPosition) {
         //howSpinner();
-        String nextParticipantId = getNextParticipantId(mPlayerId, mMatch);
+        final String nextParticipantId = getNextParticipantId(mPlayerId, mMatch);
         GameMessage turnMessage = new GameMessage(0, clickedPosition);
         //if the game is over we send a finished game message instead of taking a turn
         if(gameInstance.getGameStatus()){
@@ -686,6 +692,19 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(TurnBasedMatch turnBasedMatch) {
                         Log.d("QUICKMATCH", "clicked item match");
+                        Log.d("TMER", nextParticipantId);
+                        timer = new CountDownTimer(120000,1000) {
+                            @Override
+                            public void onTick(long millisUntilFinished) {
+                                Log.d(TAG, "seconds remaining: " + millisUntilFinished / 1000);
+                            }
+
+                            @Override
+                            public void onFinish() {
+                                Log.d(TAG, "End");
+                                cancelMatch(mMatch.getMatchId());
+                            }
+                        }.start();
                         mMatch = turnBasedMatch;
                         //updateMatch(turnBasedMatch);
                         //onUpdateMatch(turnBasedMatch);
@@ -740,6 +759,12 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         GameMessage m = SerializationUtils.deserialize(turnBasedMatch.getData());
         Log.d("DESERIALIZING:", m.isInitial() + " " + m.getPlayer() + " " + m.getPositionPlayed());
         if(!m.isInitial()){
+            if(timer != null){
+                Log.d(TAG, "Cancel");
+                timer.cancel();
+                timer = null;
+            }
+
             handlePlay(m.getPositionPlayed());
         }else{
             setPlayerInfo(m.getPlayer(), m.getDisplayName());
@@ -780,7 +805,10 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         });
     }
 
-    @Override
+
+
+
+@Override
     public void onBackPressed() {
        // super.onBackPressed();
         Log.d(TAG, "Good");
@@ -831,6 +859,11 @@ public class MultiplayerGameActivity extends AppCompatActivity {
     protected void onDestroy() {
        if(mTurnBasedMultiplayerClient != null){
            cleanClients();
+
+       }
+       if(timer != null) {
+           timer.cancel();
+            timer = null;
        }
        super.onDestroy();
 
