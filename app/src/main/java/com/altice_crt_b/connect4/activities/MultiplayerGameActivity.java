@@ -251,30 +251,14 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         int turn = gameInstance.getTurn();
 
         //Find the views related to each player.
-//        final TextView p1Name = (TextView) findViewById(R.id.p1_name);
-//        TextView p2Name = (TextView) findViewById(R.id.p2_name);
-//        ImageView p1Pic = (ImageView) findViewById(R.id.p1_icon);
-//        ImageView p2Pic = (ImageView) findViewById(R.id.p2_icon);
-
         final ImageView p1CenteredPic = (ImageView) findViewById(R.id.p1_center_icon);
         final ImageView p2CenteredPic = (ImageView) findViewById(R.id.p2_center_icon);
         final Animation overshootOnEnter = AnimationUtils.loadAnimation(MultiplayerGameActivity.this, R.anim.overshoot_on_enter);
         Animation anticipateOnExit = AnimationUtils.loadAnimation(MultiplayerGameActivity.this, R.anim.anticipate_on_exit);
 
-//        Animation bounce = AnimationUtils.loadAnimation(GameActivity.this, R.anim.bounce_loop);
-
         //It's the 1st player's Turn.
         if(turn == 1) {
             Log.wtf(TAG, "It's the 1st Player Turn");
-//            ObjectAnimator fadeToWhite = ObjectAnimator.ofObject(p1Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,0,0,0), Color.argb(255,255,255,255));
-//            fadeToWhite.setDuration(500);
-//            fadeToWhite.start();
-//
-//            ObjectAnimator fadeToBlack = ObjectAnimator.ofObject(p2Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,255,255,255), Color.argb(255,0,0,0));
-//            fadeToBlack.setDuration(500);
-//            fadeToBlack.start();
-//            p2Pic.clearAnimation();
-//            p1Pic.startAnimation(bounce);
             anticipateOnExit.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {
@@ -305,15 +289,6 @@ public class MultiplayerGameActivity extends AppCompatActivity {
         //It's the 2nd player's Turn.
         else {
             Log.wtf(TAG, "It's the 2nd Player Turn");
-//            ObjectAnimator fadeToWhite = ObjectAnimator.ofObject(p2Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,0,0,0), Color.argb(255,255,255,255));
-//            fadeToWhite.setDuration(500);
-//            fadeToWhite.start();
-//
-//            ObjectAnimator fadeToBlack = ObjectAnimator.ofObject(p1Name, "textColor", new android.animation.ArgbEvaluator(), Color.argb(255,255,255,255), Color.argb(255,0,0,0));
-//            fadeToBlack.setDuration(400);
-//            fadeToBlack.start();
-//            p1Pic.clearAnimation();
-//            p2Pic.startAnimation(bounce);
             anticipateOnExit.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {
