@@ -148,7 +148,7 @@
         <!-- Tile Grid End -->
     </RelativeLayout>
     <RelativeLayout
-        android:visibility="visible"
+        android:visibility="gone"
         android:id="@+id/waiting_for_player_layout"
         android:orientation="vertical"
         android:background="#cbffffff"
