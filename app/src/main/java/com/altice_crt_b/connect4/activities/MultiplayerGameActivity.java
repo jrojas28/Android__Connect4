@@ -959,6 +959,9 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                 });
             }
         }
+        //Add a small offset to the 1st animation.
+        //this helps keep it smoother on lower speed phones.
+        enterAnims[0].setStartOffset(200);
         //now that we have successfully set up the animations for each item, let's start them.
         loadingChips[0].startAnimation(enterAnims[0]);
     }
