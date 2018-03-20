@@ -60,72 +60,6 @@
         android:layout_height="match_parent"
         android:padding="20dp"
         android:layout_below="@id/icon_container">
-        <!--<LinearLayout-->
-            <!--android:id="@+id/panel"-->
-            <!--android:padding="10dp"-->
-            <!--android:orientation="horizontal"-->
-            <!--android:layout_alignParentTop="true"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content">-->
-            <!--<RelativeLayout-->
-                <!--android:visibility="invisible"-->
-                <!--android:layout_weight="0.40"-->
-                <!--android:layout_width="0dp"-->
-                <!--android:layout_height="wrap_content">-->
-                <!--<ImageView-->
-                    <!--android:id="@+id/p1_icon"-->
-                    <!--android:layout_width="50dp"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_alignParentTop="true"-->
-                    <!--android:layout_centerInParent="true"-->
-                    <!--android:adjustViewBounds="true"-->
-                    <!--android:paddingTop="10dp"-->
-                    <!--android:src="@drawable/chip_vector_p1" />-->
-                <!--<TextView-->
-                    <!--android:layout_below="@id/p1_icon"-->
-                    <!--android:id="@+id/p1_name"-->
-                    <!--android:text="@string/default_p_1_name"-->
-                    <!--android:textColor="@android:color/white"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:paddingTop="10dp"-->
-                    <!--android:gravity="center"/>-->
-            <!--</RelativeLayout>-->
-            <!--&lt;!&ndash; Spacer Start &ndash;&gt;-->
-            <!--<LinearLayout-->
-                <!--android:visibility="invisible"-->
-                <!--android:orientation="vertical"-->
-                <!--android:id="@+id/spacer"-->
-                <!--android:layout_width="0dp"-->
-                <!--android:layout_weight="0.20"-->
-                <!--android:layout_height="wrap_content">-->
-            <!--</LinearLayout>-->
-            <!--&lt;!&ndash; Spacer End &ndash;&gt;-->
-            <!--<RelativeLayout-->
-                <!--android:visibility="invisible"-->
-                <!--android:layout_weight="0.40"-->
-                <!--android:layout_width="0dp"-->
-                <!--android:layout_height="wrap_content">-->
-                <!--<ImageView-->
-                    <!--android:id="@+id/p2_icon"-->
-                    <!--android:layout_alignParentTop="true"-->
-                    <!--android:layout_centerInParent="true"-->
-                    <!--android:src="@drawable/chip_vector_p2"-->
-                    <!--android:layout_width="50dp"-->
-                    <!--android:adjustViewBounds="true"-->
-                    <!--android:paddingTop="10dp"-->
-                    <!--android:layout_height="wrap_content" />-->
-                <!--<TextView-->
-                    <!--android:layout_below="@id/p2_icon"-->
-                    <!--android:id="@+id/p2_name"-->
-                    <!--android:text="Player 1"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:paddingTop="10dp"-->
-                    <!--android:gravity="center"/>-->
-            <!--</RelativeLayout>-->
-        <!--</LinearLayout>-->
-
         <!-- Chip Grid Start -->
         <GridView
             android:visibility="visible"
@@ -148,7 +82,7 @@
         <!-- Tile Grid End -->
     </RelativeLayout>
     <RelativeLayout
-        android:visibility="gone"
+        android:visibility="visible"
         android:id="@+id/waiting_for_player_layout"
         android:orientation="vertical"
         android:background="#cbffffff"
@@ -165,10 +99,49 @@
             android:text="@string/player_waiting_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-        <ProgressBar
-            android:layout_below="@id/waiting_text"
+        <!-- Loading Chips Start -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_below="@id/waiting_text">
+            <ImageView
+                android:visibility="invisible"
+                android:id="@+id/loading_1"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/chip_vector_p1" />
+            <ImageView
+                android:visibility="invisible"
+                android:id="@+id/loading_2"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/chip_vector_p2" />
+            <ImageView
+                android:visibility="invisible"
+                android:id="@+id/loading_3"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/chip_vector_p1" />
+            <ImageView
+                android:visibility="invisible"
+                android:id="@+id/loading_4"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/chip_vector_p2" />
+        </RelativeLayout>
+        <!-- Loading Chips End -->
+        <!--<ProgressBar-->
+            <!--android:layout_below="@id/waiting_text"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content" />-->
 
         <android.support.v7.widget.AppCompatButton
             android:layout_alignParentBottom="true"

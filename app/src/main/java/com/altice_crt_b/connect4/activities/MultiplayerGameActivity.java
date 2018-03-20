@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
@@ -14,6 +15,10 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.AnticipateInterpolator;
+import android.view.animation.Interpolator;
+import android.view.animation.OvershootInterpolator;
+import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
@@ -150,6 +155,7 @@ public class MultiplayerGameActivity extends AppCompatActivity {
 
         waitingForPlayerLy = findViewById(R.id.waiting_for_player_layout);
         showWaitingLayout(true);
+        loopWaitingAnimation();
             cancelButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -778,6 +784,183 @@ public class MultiplayerGameActivity extends AppCompatActivity {
                 Log.d(TAG, "Bad");
             }
         });
+    }
+
+    /**
+     * A function intended to loop a waiting animation with 4 chips going and leaving the screen.
+     */
+    public void loopWaitingAnimation() {
+        //First, let's create an array with the loading icons.
+        final ImageView[] loadingChips = {
+                (ImageView) waitingForPlayerLy.findViewById(R.id.loading_1),
+                (ImageView) waitingForPlayerLy.findViewById(R.id.loading_2),
+                (ImageView) waitingForPlayerLy.findViewById(R.id.loading_3),
+                (ImageView) waitingForPlayerLy.findViewById(R.id.loading_4)
+        };
+        //Now, create the animations for each.
+        final TranslateAnimation[] enterAnims = {
+                new TranslateAnimation(
+                        Animation.RELATIVE_TO_PARENT,
+                        -1.0f,
+                        Animation.RELATIVE_TO_PARENT,
+                        0.075f,
+                        0,
+                        0,
+                        0,
+                        0
+                ),
+                new TranslateAnimation(
+                        Animation.RELATIVE_TO_PARENT,
+                        -1.0f,
+                        Animation.RELATIVE_TO_PARENT,
+                        0.025f,
+                        0,
+                        0,
+                        0,
+                        0
+                ),
+                new TranslateAnimation(
+                        Animation.RELATIVE_TO_PARENT,
+                        -1.0f,
+                        Animation.RELATIVE_TO_PARENT,
+                        -0.025f,
+                        0,
+                        0,
+                        0,
+                        0
+                ),
+                new TranslateAnimation(
+                        Animation.RELATIVE_TO_PARENT,
+                        -1.0f,
+                        Animation.RELATIVE_TO_PARENT,
+                        -0.075f,
+                        0,
+                        0,
+                        0,
+                        0
+                ),
+        };
+
+        final TranslateAnimation[] exitAnims = {
+                new TranslateAnimation(
+                        Animation.RELATIVE_TO_PARENT,
+                        0.075f,
+                        Animation.RELATIVE_TO_PARENT,
+                        1.0f,
+                        0,
+                        0,
+                        0,
+                        0
+                ),
+                new TranslateAnimation(
+                        Animation.RELATIVE_TO_PARENT,
+                        0.025f,
+                        Animation.RELATIVE_TO_PARENT,
+                        1.0f,
+                        0,
+                        0,
+                        0,
+                        0
+                ),
+                new TranslateAnimation(
+                        Animation.RELATIVE_TO_PARENT,
+                        -0.025f,
+                        Animation.RELATIVE_TO_PARENT,
+                        1.0f,
+                        0,
+                        0,
+                        0,
+                        0
+                ),
+                new TranslateAnimation(
+                        Animation.RELATIVE_TO_PARENT,
+                        -0.075f,
+                        Animation.RELATIVE_TO_PARENT,
+                        1.0f,
+                        0,
+                        0,
+                        0,
+                        0
+                ),
+        };
+        final int loadingChipCount = loadingChips.length;
+        for(int i = 0; i < loadingChipCount; i++) {
+            final int currentI = i;
+            //Set the interpolators for the Enter / Exit animations.
+            enterAnims[i].setInterpolator(new OvershootInterpolator());
+            enterAnims[i].setDuration(700);
+            enterAnims[i].setFillEnabled(true);
+            enterAnims[i].setFillAfter(true);
+            exitAnims[i].setInterpolator(new AnticipateInterpolator());
+            exitAnims[i].setDuration(700);
+            exitAnims[i].setFillEnabled(true);
+            exitAnims[i].setFillAfter(true);
+            //If we're talking about the first 3 chips, we'll handle the animations in a specific way.
+            if(i < loadingChipCount - 1) {
+                //Develop the Enter Animation.
+                enterAnims[i].setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                        loadingChips[currentI].setVisibility(View.VISIBLE);
+                    }
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        //On end, the next animation should start playing.
+                        loadingChips[currentI + 1].startAnimation(enterAnims[currentI + 1]);
+                    }
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
+                //Procedure of the Exit Animation
+                exitAnims[i].setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {}
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        //On end, this animations must shoot for the next one.
+                        //It must, also, disappear the current chip.
+                        loadingChips[currentI + 1].startAnimation(exitAnims[currentI + 1]);
+                        loadingChips[currentI].setVisibility(View.INVISIBLE);
+                    }
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
+            }
+            //The last chip, on the other hand must:
+            //Start the EXIT ANIMATIONS if the animation comes from start OR
+            //Start the ENTER ANIMATIONS if the animations come from ending.
+            else {
+                enterAnims[i].setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                        loadingChips[currentI].setVisibility(View.VISIBLE);
+                    }
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        //Since this is the last chip, on end, the 1st chip should start the leaving animation
+                        loadingChips[0].startAnimation(exitAnims[0]);
+                    }
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
+
+                exitAnims[i].setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {}
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        //On end, this animations must shoot for the next one.
+                        //It must, also, disappear the current chip.
+                        loadingChips[0].startAnimation(enterAnims[0]);
+                        loadingChips[currentI].setVisibility(View.INVISIBLE);
+                    }
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
+            }
+        }
+        //now that we have successfully set up the animations for each item, let's start them.
+        loadingChips[0].startAnimation(enterAnims[0]);
     }
 
 
